@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "func_ticketera_api_dev": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7011"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "containerRunArguments": "--init",
+      "httpPort": 30342,
+      "useSSL": false
+    }
+  }
+}
