@@ -11,10 +11,14 @@ on:
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'
   DOTNET_VERSION: '8.0.x'
+  AZURE_FUNCTIONAPP_NAME: 'func-ticketera-api-dev'
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout
@@ -25,18 +29,23 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Build
-        shell: bash
-        run: |
-          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-          dotnet build --configuration Release --output ./output
-          popd
+      - name: Restore
+        run: dotnet restore
+
+      - name: Publish
+        run: dotnet publish ./func-ticketera-api-dev.csproj --configuration Release --output ./published
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
-          app-name: 'func-ticketera-api-dev'
-          package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_9C6255180CFD4702BF8FB04F129B8678 }}
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          package: './published'
           sku: 'flexconsumption'
           remote-build: true
